@@ -21,7 +21,7 @@ app.use(express.json())
 
 app.use(
   CORS({
-    origin: ['https://investment-portfolio-tracker-fe.vercel.app','http://localhost:5173'],
+    origin: 'https://investment-portfolio-tracker-fe.vercel.app',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
