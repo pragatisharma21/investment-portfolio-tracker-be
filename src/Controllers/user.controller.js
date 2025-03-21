@@ -2,6 +2,10 @@ import User from '../Models/user.model.js'
 import { uploadToImagekit } from '../Services/imagekit.service.js'
 import { generateToken } from '../Utils/jwtUtil.js'
 import bcrypt from 'bcryptjs'
+import { OAuth2Client } from 'google-auth-library'
+
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
 
 let dummyProfile =
   'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541'
@@ -38,16 +42,19 @@ export default class UserController {
       next(err)
     }
   }
+  
 
-  static async googleSignup(req, res, next) {
+  static async googleLogin(req, res, next) {
     try {
       const { token } = req.body
+
       const ticket = await client.verifyIdToken({
         idToken: token,
         audience: process.env.GOOGLE_CLIENT_ID,
       })
 
       const { name, email, picture, sub } = ticket.getPayload()
+
       let user = await User.findOne({ email })
 
       if (!user) {
@@ -60,14 +67,16 @@ export default class UserController {
           password: null,
           userType: 'DEFAULT',
         })
-        user.save()
+        await user.save()
       }
 
       const jwtToken = generateToken({
         userId: user._id,
         name: user.name,
         email: user.email,
+        userType: user.userType,
       })
+
       res.status(200).json({ id: user._id, token: jwtToken })
     } catch (err) {
       next(err)
